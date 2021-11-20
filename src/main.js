@@ -390,53 +390,45 @@ const createDna = (_layers, layeringExceptions) => {
   let randNum = [];
 
   // const previewConfig = previewGif.pop();
-  const previewConfig = {
-    bg: "basic-coral",
-    body: "blue",
-    eyes: "mischievous",
-    mouth: "golden-teeth",
-    hats: "flower",
-    accessory: "spaceship",
-  };
 
   const config = {};
   _layers.forEach((layer) => {
-    const trait = layer.name;
-    const _variant = previewConfig[layer.name];
-    const variant = layer.elements.find(({ name }) => name === _variant);
-    // randNum.push(
-    //   `${layerElement.id}:${layerElement.filename}${
-    //     layer.bypassDNA ? "?bypassDNA=true" : ""
-    //   }`
-    // );
-    // var totalWeight = 0;
-    // layer.elements.forEach((element) => {
-    //   totalWeight += element.weight;
-    // });
-    // // number between 0 - totalWeight
-    // let random = Math.floor(Math.random() * totalWeight);
-    // for (var i = 0; i < layer.elements.length; i++) {
-    //   // subtract the current weight from the random weight until we reach a sub zero value.
-    //   random -= layer.elements[i].weight;
-    //   if (random < 0) {
-    //     const trait = layer.name;
-    //     const variant = layer.elements[i];
+    // const trait = layer.name;
+    // const _variant = previewConfig[layer.name];
+    // const variant = layer.elements.find(({ name }) => name === _variant);
+    randNum.push(
+      `${layerElement.id}:${layerElement.filename}${
+        layer.bypassDNA ? "?bypassDNA=true" : ""
+      }`
+    );
+    var totalWeight = 0;
+    layer.elements.forEach((element) => {
+      totalWeight += element.weight;
+    });
+    // number between 0 - totalWeight
+    let random = Math.floor(Math.random() * totalWeight);
+    for (var i = 0; i < layer.elements.length; i++) {
+      // subtract the current weight from the random weight until we reach a sub zero value.
+      random -= layer.elements[i].weight;
+      if (random < 0) {
+        const trait = layer.name;
+        const variant = layer.elements[i];
 
-    // Keep track of the chosen configuration
-    config[trait] = {
-      id: variant.id,
-      variant: variant.name,
-      filename: variant.filename,
-      bypassDNA: layer.bypassDNA,
-    };
-    //   return;
-    //   // return randNum.push(
-    //   //   `${layer.elements[i].id}:${layer.elements[i].filename}${
-    //   //     layer.bypassDNA ? "?bypassDNA=true" : ""
-    //   //   }`
-    //   // );
-    // }
-    // }
+        // Keep track of the chosen configuration
+        config[trait] = {
+          id: variant.id,
+          variant: variant.name,
+          filename: variant.filename,
+          bypassDNA: layer.bypassDNA,
+        };
+        return;
+        // return randNum.push(
+        //   `${layer.elements[i].id}:${layer.elements[i].filename}${
+        //     layer.bypassDNA ? "?bypassDNA=true" : ""
+        //   }`
+        // );
+      }
+    }
   });
 
   const layeringException = layeringExceptions.find(({ exception }) => {
