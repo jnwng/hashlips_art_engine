@@ -140,3 +140,6 @@ dist
 # OSX
 
 .DS_Store
+
+add-skins/
+round-two/

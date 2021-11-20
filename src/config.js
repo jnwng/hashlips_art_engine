@@ -28,14 +28,78 @@ const solanaMetadata = {
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 5,
+    growEditionSizeTo: 10,
     layersOrder: [
       { name: "bg", options: { bypassDNA: true } },
       { name: "body" },
+      { name: "hats" },
+      {
+        name: "mouth",
+        options: {
+          getFilename: (filename, dna) =>
+            dna["mouth"].variant === "grin"
+              ? `grin-${dna["body"].variant}.png`
+              : filename,
+        },
+      },
       { name: "eyes" },
-      { name: "mouth" },
-      { name: "hat" },
       { name: "accessory" },
+    ],
+    // Had to rename "background" -> "bg", "hat" -> "hats"
+    invalidCombinations: [
+      [
+        { trait: "bg", variant: "sol-season" },
+        { trait: "accessory", variant: "spaceship" },
+      ],
+      [
+        { trait: "eyes", variant: "snorkel" },
+        { trait: "hats", variant: "headphones" },
+      ],
+    ],
+
+    layeringExceptions: [
+      {
+        exception: {
+          trait: "hats",
+          variant: "astronaut",
+        },
+        layers: [
+          { name: "bg" },
+          { name: "body" },
+          { name: "mouth" },
+          { name: "eyes" },
+          { name: "hats" },
+          { name: "accessory" },
+        ],
+      },
+      {
+        exception: {
+          trait: "hats",
+          variant: "flower",
+        },
+        layers: [
+          { name: "bg" },
+          { name: "body" },
+          { name: "mouth" },
+          { name: "eyes" },
+          { name: "hats" },
+          { name: "accessory" },
+        ],
+      },
+      {
+        exception: {
+          trait: "eyes",
+          variant: "snorkel",
+        },
+        layers: [
+          { name: "bg" },
+          { name: "body" },
+          { name: "mouth" },
+          { name: "hats" },
+          { name: "eyes" },
+          { name: "accessory" },
+        ],
+      },
     ],
   },
 ];
@@ -87,18 +151,18 @@ const rarityDelimiter = "#";
 const uniqueDnaTorrance = 10000;
 
 const preview = {
-  thumbPerRow: 5,
+  thumbPerRow: 100,
   thumbWidth: 50,
   imageRatio: format.height / format.width,
   imageName: "preview.png",
 };
 
 const preview_gif = {
-  numberOfImages: 5,
+  numberOfImages: 10,
   order: "ASC", // ASC, DESC, MIXED
   repeat: 0,
   quality: 100,
-  delay: 500,
+  delay: 250,
   imageName: "preview.gif",
 };
 

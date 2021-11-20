@@ -34,7 +34,8 @@ const ctx = canvas.getContext("2d");
 var metadataList = [];
 var attributesList = [];
 var dnaList = new Set();
-const DNA_DELIMITER = "-";
+// We use hyphens for some layers
+const DNA_DELIMITER = "~";
 const HashlipsGiffer = require(path.join(
   basePath,
   "/modules/HashlipsGiffer.js"
@@ -66,7 +67,7 @@ const getRarityWeight = (_str) => {
 };
 
 const cleanDna = (_str) => {
-  const withoutOptions = removeQueryStrings(_str)
+  const withoutOptions = removeQueryStrings(_str);
   var dna = Number(withoutOptions.split(":").shift());
   return dna;
 };
@@ -111,7 +112,11 @@ const layersSetup = (layersOrder) => {
     bypassDNA:
       layerObj.options?.["bypassDNA"] !== undefined
         ? layerObj.options?.["bypassDNA"]
-        : false
+        : false,
+    getFilename:
+      layerObj.options?.["getFilename"] !== undefined
+        ? layerObj.options?.["getFilename"]
+        : false,
   }));
   return layers;
 };
@@ -223,14 +228,21 @@ const drawElement = (_renderObject, _index, _layersLen) => {
 
 const constructLayerToDna = (_dna = "", _layers = []) => {
   let mappedDnaToLayers = _layers.map((layer, index) => {
-    let selectedElement = layer.elements.find(
-      (e) => e.id == cleanDna(_dna.split(DNA_DELIMITER)[index])
-    );
+    const dna = _dna.split(DNA_DELIMITER)[index];
+    const realFilename = removeQueryStrings(dna.split(":")[1]);
+    let selectedElement = layer.elements.find((e) => e.id == cleanDna(dna));
     return {
       name: layer.name,
       blend: layer.blend,
       opacity: layer.opacity,
-      selectedElement: selectedElement,
+      selectedElement: {
+        ...selectedElement,
+        filename: realFilename,
+        path: selectedElement.path.replace(
+          selectedElement.filename,
+          realFilename
+        ),
+      },
     };
   });
   return mappedDnaToLayers;
@@ -245,23 +257,23 @@ const constructLayerToDna = (_dna = "", _layers = []) => {
  * @returns new DNA string with any items that should be filtered, removed.
  */
 const filterDNAOptions = (_dna) => {
-  const dnaItems = _dna.split(DNA_DELIMITER)
-  const filteredDNA = dnaItems.filter(element => {
+  const dnaItems = _dna.split(DNA_DELIMITER);
+  const filteredDNA = dnaItems.filter((element) => {
     const query = /(\?.*$)/;
     const querystring = query.exec(element);
     if (!querystring) {
-      return true
+      return true;
     }
     const options = querystring[1].split("&").reduce((r, setting) => {
       const keyPairs = setting.split("=");
       return { ...r, [keyPairs[0]]: keyPairs[1] };
     }, []);
 
-    return options.bypassDNA
-  })
+    return options.bypassDNA;
+  });
 
-  return filteredDNA.join(DNA_DELIMITER)
-}
+  return filteredDNA.join(DNA_DELIMITER);
+};
 
 /**
  * Cleaning function for DNA strings. When DNA strings include an option, it
@@ -273,34 +285,190 @@ const filterDNAOptions = (_dna) => {
  */
 const removeQueryStrings = (_dna) => {
   const query = /(\?.*$)/;
-  return _dna.replace(query, '')
-}
+  return _dna.replace(query, "");
+};
 
 const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
   const _filteredDNA = filterDNAOptions(_dna);
   return !_DnaList.has(_filteredDNA);
 };
 
-const createDna = (_layers) => {
-  let randNum = [];
-  _layers.forEach((layer) => {
-    var totalWeight = 0;
-    layer.elements.forEach((element) => {
-      totalWeight += element.weight;
-    });
-    // number between 0 - totalWeight
-    let random = Math.floor(Math.random() * totalWeight);
-    for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
-      random -= layer.elements[i].weight;
-      if (random < 0) {
-        return randNum.push(
-          `${layer.elements[i].id}:${layer.elements[i].filename}${layer.bypassDNA? '?bypassDNA=true' : ''}`
-        );
-      }
-    }
+const isExcluded = (dna, invalidCombinations) => {
+  const excluded = invalidCombinations.some((traitVariantPairs) => {
+    return traitVariantPairs.every((pair) => dna.includes(pair.variant));
   });
-  return randNum.join(DNA_DELIMITER);
+  if (excluded) {
+    console.info({ excluded }, dna);
+  }
+  return excluded;
+};
+
+const previewGif = [
+  {
+    bg: "basic-honey",
+    body: "red",
+    eyes: "basic",
+    mouth: "grin",
+    hats: "flower",
+    accessory: "spaceship",
+  },
+  {
+    bg: "basic-orchid",
+    body: "blue",
+    eyes: "sol-sunglasses",
+    mouth: "smirk",
+    hats: "baseball",
+    accessory: "sol-beach-ball",
+  },
+  {
+    bg: "basic-honey",
+    body: "red",
+    eyes: "mischievous",
+    mouth: "tongue",
+    hats: "ninja",
+    accessory: "scallop",
+  },
+  {
+    bg: "basic-orchid",
+    body: "yellow",
+    eyes: "droopy",
+    mouth: "smirk",
+    hats: "bucket",
+    accessory: "kelp",
+  },
+  {
+    bg: "basic-mellow",
+    body: "yellow",
+    eyes: "happy",
+    mouth: "cat",
+    hats: "headphones",
+    accessory: "none",
+  },
+  {
+    bg: "basic-coral",
+    body: "blue",
+    eyes: "cartoon",
+    mouth: "smile",
+    hats: "chef",
+    accessory: "none",
+  },
+  {
+    bg: "basic-orchid",
+    body: "blue",
+    eyes: "anime",
+    mouth: "smirk",
+    hats: "astronaut",
+    accessory: "samo",
+  },
+  {
+    bg: "basic-coral",
+    body: "yellow",
+    eyes: "anime",
+    mouth: "basic",
+    hats: "headphones",
+    accessory: "phantom",
+  },
+  {
+    bg: "basic-lagoon",
+    body: "red",
+    eyes: "sleepy",
+    mouth: "smile",
+    hats: "bandana",
+    accessory: "mug",
+  },
+  {
+    bg: "basic-honey",
+    body: "blue",
+    eyes: "mischievous",
+    mouth: "golden-teeth",
+    hats: "pirate",
+    accessory: "saber",
+  },
+];
+
+const createDna = (_layers, layeringExceptions) => {
+  let randNum = [];
+
+  // const previewConfig = previewGif.pop();
+  const previewConfig = {
+    bg: "basic-coral",
+    body: "blue",
+    eyes: "mischievous",
+    mouth: "golden-teeth",
+    hats: "flower",
+    accessory: "spaceship",
+  };
+
+  const config = {};
+  _layers.forEach((layer) => {
+    const trait = layer.name;
+    const _variant = previewConfig[layer.name];
+    const variant = layer.elements.find(({ name }) => name === _variant);
+    // randNum.push(
+    //   `${layerElement.id}:${layerElement.filename}${
+    //     layer.bypassDNA ? "?bypassDNA=true" : ""
+    //   }`
+    // );
+    // var totalWeight = 0;
+    // layer.elements.forEach((element) => {
+    //   totalWeight += element.weight;
+    // });
+    // // number between 0 - totalWeight
+    // let random = Math.floor(Math.random() * totalWeight);
+    // for (var i = 0; i < layer.elements.length; i++) {
+    //   // subtract the current weight from the random weight until we reach a sub zero value.
+    //   random -= layer.elements[i].weight;
+    //   if (random < 0) {
+    //     const trait = layer.name;
+    //     const variant = layer.elements[i];
+
+    // Keep track of the chosen configuration
+    config[trait] = {
+      id: variant.id,
+      variant: variant.name,
+      filename: variant.filename,
+      bypassDNA: layer.bypassDNA,
+    };
+    //   return;
+    //   // return randNum.push(
+    //   //   `${layer.elements[i].id}:${layer.elements[i].filename}${
+    //   //     layer.bypassDNA ? "?bypassDNA=true" : ""
+    //   //   }`
+    //   // );
+    // }
+    // }
+  });
+
+  const layeringException = layeringExceptions.find(({ exception }) => {
+    return (
+      config[exception.trait] &&
+      config[exception.trait].variant === exception.variant
+    );
+  });
+
+  let layerOrder = _layers;
+  if (layeringException) {
+    const { layers } = layeringException;
+    layerOrder = layers.map((__layer) =>
+      _layers.find(({ name }) => name === __layer.name)
+    );
+  }
+  const dna = layerOrder.map((__layer) => {
+    const variant = config[__layer.name];
+    const layer = _layers.find(({ name }) => __layer.name === name);
+    let filename = variant.filename;
+    if (layer && layer.getFilename) {
+      filename = layer.getFilename(filename, config);
+    }
+    randNum.push(
+      `${variant.id}:${filename}${variant.bypassDNA ? "?bypassDNA=true" : ""}`
+    );
+  });
+
+  return {
+    dna: randNum.join(DNA_DELIMITER),
+    layers: layerOrder,
+  };
 };
 
 const writeMetaData = (_data) => {
@@ -359,9 +527,18 @@ const startCreating = async () => {
     while (
       editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
     ) {
-      let newDna = createDna(layers);
-      if (isDnaUnique(dnaList, newDna)) {
-        let results = constructLayerToDna(newDna, layers);
+      let { dna: newDna, layers: layerOrder } = createDna(
+        layers,
+        layerConfigurations[layerConfigIndex].layeringExceptions
+      );
+      if (
+        isDnaUnique(dnaList, newDna) &&
+        !isExcluded(
+          newDna,
+          layerConfigurations[layerConfigIndex].invalidCombinations
+        )
+      ) {
+        let results = constructLayerToDna(newDna, layerOrder);
         let loadedElements = [];
 
         results.forEach((layer) => {
@@ -414,14 +591,15 @@ const startCreating = async () => {
         editionCount++;
         abstractedIndexes.shift();
       } else {
-        console.log("DNA exists!");
+        // console.log("DNA exists!");
         failedCount++;
-        if (failedCount >= uniqueDnaTorrance) {
-          console.log(
-            `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
-          );
-          process.exit();
-        }
+        // Removing this check because it doesn't really help us
+        // if (failedCount >= uniqueDnaTorrance) {
+        //   console.log(
+        //     `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
+        //   );
+        //   process.exit();
+        // }
       }
     }
     layerConfigIndex++;
