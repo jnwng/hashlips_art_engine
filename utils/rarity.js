@@ -64,17 +64,17 @@ data.forEach((element) => {
 });
 
 // convert occurrences to percentages
-for (var layer in rarityData) {
-  for (var attribute in rarityData[layer]) {
-    // convert to percentage
-    rarityData[layer][attribute].occurrence =
-      (rarityData[layer][attribute].occurrence / editionSize) * 100;
+// for (var layer in rarityData) {
+//   for (var attribute in rarityData[layer]) {
+//     // convert to percentage
+//     rarityData[layer][attribute].occurrence =
+//       (rarityData[layer][attribute].occurrence / editionSize) * 100;
 
-    // show two decimal places in percent
-    rarityData[layer][attribute].occurrence =
-      rarityData[layer][attribute].occurrence.toFixed(0) + "% out of 100%";
-  }
-}
+//     // show two decimal places in percent
+//     rarityData[layer][attribute].occurrence =
+//       rarityData[layer][attribute].occurrence.toFixed(0) + "% out of 100%";
+//   }
+// }
 
 // print out rarity data
 for (var layer in rarityData) {

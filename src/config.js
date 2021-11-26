@@ -6,20 +6,20 @@ const basePath = isLocal ? process.cwd() : path.dirname(process.execPath);
 const { MODE } = require(path.join(basePath, "constants/blend_mode.js"));
 const { NETWORK } = require(path.join(basePath, "constants/network.js"));
 
-const network = NETWORK.eth;
+const network = NETWORK.sol;
 
 // General metadata for Ethereum
-const namePrefix = "Your Collection";
-const description = "Remember to replace this description";
+const namePrefix = "Orcanauts";
+const description = "The most lovable NFTs on Solana";
 const baseUri = "ipfs://NewUriToReplace";
 
 const solanaMetadata = {
-  symbol: "YC",
-  seller_fee_basis_points: 1000, // Define how much % you want from secondary market sales 1000 = 10%
-  external_url: "https://www.youtube.com/c/hashlipsnft",
+  symbol: "ORCANAUT",
+  seller_fee_basis_points: 300, // Define how much % you want from secondary market sales 1000 = 10%
+  external_url: "https://www.orca.so",
   creators: [
     {
-      address: "7fXNuer5sbZtaTEPhtJ5g5gNtuyRoKkvxdjEjEnPN4mC",
+      address: "9tZGyDBftfiTjcyvBNFwy9Vq2jM6q1bDLiq4e7uPuRXE",
       share: 100,
     },
   ],
@@ -28,7 +28,7 @@ const solanaMetadata = {
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 10,
+    growEditionSizeTo: 9960,
     layersOrder: [
       { name: "bg", options: { bypassDNA: true } },
       { name: "body" },
@@ -38,7 +38,7 @@ const layerConfigurations = [
         options: {
           getFilename: (filename, dna) =>
             dna["mouth"].variant === "grin"
-              ? `grin-${dna["body"].variant}.png`
+              ? `../../variants/grin-${dna["body"].variant}.png`
               : filename,
         },
       },
@@ -54,6 +54,10 @@ const layerConfigurations = [
       [
         { trait: "eyes", variant: "snorkel" },
         { trait: "hats", variant: "headphones" },
+      ],
+      [
+        { trait: "eyes", variant: "snorkel" },
+        { trait: "hats", variant: "astronaut" },
       ],
     ],
 
@@ -109,8 +113,8 @@ const shuffleLayerConfigurations = false;
 const debugLogs = false;
 
 const format = {
-  width: 512,
-  height: 512,
+  width: 888,
+  height: 888,
 };
 
 const gif = {
@@ -152,7 +156,7 @@ const uniqueDnaTorrance = 10000;
 
 const preview = {
   thumbPerRow: 100,
-  thumbWidth: 50,
+  thumbWidth: 180,
   imageRatio: format.height / format.width,
   imageName: "preview.png",
 };
@@ -162,7 +166,8 @@ const preview_gif = {
   order: "ASC", // ASC, DESC, MIXED
   repeat: 0,
   quality: 100,
-  delay: 250,
+  // delay: 250,
+  delay: 500,
   imageName: "preview.gif",
 };
 
