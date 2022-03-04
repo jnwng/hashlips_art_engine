@@ -117,6 +117,10 @@ const layersSetup = (layersOrder) => {
       layerObj.options?.["getFilename"] !== undefined
         ? layerObj.options?.["getFilename"]
         : false,
+    metadataOnly:
+      layerObj.options?.["metadataOnly"] !== undefined
+        ? layerObj.options?.["metadataOnly"]
+        : false,
   }));
   return layers;
 };
@@ -142,7 +146,8 @@ const drawBackground = () => {
 const addMetadata = (_dna, _edition) => {
   let dateTime = Date.now();
   let tempMetadata = {
-    name: `${namePrefix} #${_edition}`,
+    // Adding one to start at one instead. We'll zero-index everything else for use with Candy Machine
+    name: `${namePrefix} #${_edition + 1}`,
     description: description,
     image: `${baseUri}/${_edition}.png`,
     dna: sha1(_dna),
@@ -182,11 +187,72 @@ const addMetadata = (_dna, _edition) => {
   attributesList = [];
 };
 
+const humanReadableNames = {
+  none: "None",
+  baseball: "Baseball Cap",
+  bucket: "Bucket Hat",
+  flower: "Flower",
+  bandana: "Bandana",
+  pirate: "Pirate Hat",
+  headphones: "AUDIUS Headphones",
+  chef: "MARINADE Chef Hat",
+  ninja: "NINJA Hood",
+  astronaut: "Astronaut Helmet",
+  basic: "Basic",
+  happy: "Happy",
+  sleepy: "Sleepy",
+  droopy: "Droopy",
+  mischievous: "Mischevous",
+  anime: "Glittery",
+  aviators: "Aviator Sunglasses",
+  cartoon: "Side-eye",
+  snorkel: "SOCN Snorkel",
+  "sol-sunglasses": "SOL Sunglasses",
+  grin: "Grin",
+  smile: "Smile",
+  frown: "Frown",
+  smirk: "Smirk",
+  cat: "Cat",
+  vampire: "Vampire",
+  tongue: "Tongue",
+  "golden-teeth": "Golden Teeth",
+  "aurory-mask": "AURORY Mask",
+  kelp: "Kelp",
+  scallop: "Scallop",
+  coral: "Coral",
+  hedgehog: "HOG Pet",
+  mug: "ORCA Mug",
+  "sol-beach-ball": "SOL Beach Ball",
+  phantom: "PHANTOM Ghost",
+  samo: "SAMO Pet",
+  saber: "SBR Saber",
+  spaceship: "ATLAS Ship",
+  "basic-coral": "Basic, Coral",
+  "basic-honey": "Basic, Honey",
+  "basic-lagoon": "Basic, Lagoon",
+  "basic-mellow": "Basic, Mellow",
+  "basic-orchid": "Basic, Orchid",
+  waves: "Waves",
+  beach: "Beach",
+  river: "River",
+  mondrian: "Mondrian",
+  "outer-space": "Outer Space",
+  defi: "DeFi Land",
+  "nyc-night": "New York City",
+  tokyo: "Tokyo",
+  "sol-season": "SOL Season",
+  blue: "Blue",
+  red: "Pink",
+  yellow: "Yellow",
+  orca: "Orca",
+  holo: "Holographic",
+};
+
 const addAttributes = (_element) => {
   let selectedElement = _element.layer.selectedElement;
   attributesList.push({
     trait_type: _element.layer.name,
-    value: selectedElement.name,
+    value: humanReadableNames[selectedElement.name],
   });
 };
 
@@ -304,190 +370,455 @@ const isExcluded = (dna, invalidCombinations) => {
 };
 
 // const previewGif = [
-//   {
-//     bg: "basic-orchid",
-//     body: "blue",
-//     eyes: "sol-sunglasses",
-//     mouth: "smirk",
-//     hats: "baseball",
-//     accessory: "sol-beach-ball",
-//   },
-//   {
-//     bg: "basic-honey",
-//     body: "red",
-//     eyes: "basic",
-//     mouth: "grin",
-//     hats: "flower",
-//     accessory: "spaceship",
-//   },
+// {
+//   bg: "basic-orchid",
+//   body: "blue",
+//   eyes: "sol-sunglasses",
+//   mouth: "smirk",
+//   hats: "baseball",
+//   accessory: "sol-beach-ball",
+// },
+// {
+//   bg: "basic-honey",
+//   body: "red",
+//   eyes: "basic",
+//   mouth: "grin",
+//   hats: "flower",
+//   accessory: "spaceship",
+// },
 
-//   {
-//     bg: "basic-orchid",
-//     body: "yellow",
-//     eyes: "droopy",
-//     mouth: "smirk",
-//     hats: "bucket",
-//     accessory: "kelp",
-//   },
-//   {
-//     bg: "river",
-//     body: "yellow",
-//     eyes: "happy",
-//     mouth: "tongue",
-//     hats: "bucket",
-//     accessory: "kelp",
-//   },
-//   {
-//     bg: "basic-mellow",
-//     body: "yellow",
-//     eyes: "happy",
-//     mouth: "cat",
-//     hats: "headphones",
-//     accessory: "none",
-//   },
-//   {
-//     bg: "waves",
-//     body: "yellow",
-//     eyes: "snorkel",
-//     mouth: "frown",
-//     hats: "none",
-//     accessory: "kelp",
-//   },
-//   {
-//     bg: "basic-honey",
-//     body: "red",
-//     eyes: "mischievous",
-//     mouth: "tongue",
-//     hats: "ninja",
-//     accessory: "scallop",
-//   },
+// {
+//   bg: "basic-orchid",
+//   body: "yellow",
+//   eyes: "droopy",
+//   mouth: "smirk",
+//   hats: "bucket",
+//   accessory: "kelp",
+// },
+// {
+//   bg: "river",
+//   body: "yellow",
+//   eyes: "happy",
+//   mouth: "tongue",
+//   hats: "bucket",
+//   accessory: "kelp",
+// },
+// {
+//   bg: "basic-mellow",
+//   body: "yellow",
+//   eyes: "happy",
+//   mouth: "cat",
+//   hats: "headphones",
+//   accessory: "none",
+// },
+// {
+//   bg: "waves",
+//   body: "yellow",
+//   eyes: "snorkel",
+//   mouth: "frown",
+//   hats: "none",
+//   accessory: "kelp",
+// },
+// {
+//   bg: "basic-honey",
+//   body: "red",
+//   eyes: "mischievous",
+//   mouth: "tongue",
+//   hats: "ninja",
+//   accessory: "scallop",
+// },
 
-//   {
-//     bg: "basic-lagoon",
-//     body: "yellow",
-//     eyes: "anime",
-//     mouth: "smirk",
-//     hats: "none",
-//     accessory: "hedgehog",
-//   },
-//   {
-//     bg: "basic-coral",
-//     body: "blue",
-//     eyes: "cartoon",
-//     mouth: "smile",
-//     hats: "chef",
-//     accessory: "none",
-//   },
-//   {
-//     bg: "basic-orchid",
-//     body: "blue",
-//     eyes: "anime",
-//     mouth: "smirk",
-//     hats: "astronaut",
-//     accessory: "samo",
-//   },
-//   {
-//     bg: "tokyo",
-//     body: "blue",
-//     eyes: "mischievous",
-//     mouth: "grin",
-//     hats: "ninja",
-//     accessory: "none",
-//   },
-//   {
-//     bg: "basic-coral",
-//     body: "yellow",
-//     eyes: "anime",
-//     mouth: "basic",
-//     hats: "headphones",
-//     accessory: "phantom",
-//   },
-//   {
-//     bg: "beach",
-//     body: "blue",
-//     eyes: "sol-sunglasses",
-//     mouth: "cat",
-//     hats: "bandana",
-//     accessory: "sol-beach-ball",
-//   },
-//   {
-//     bg: "basic-lagoon",
-//     body: "red",
-//     eyes: "sleepy",
-//     mouth: "smile",
-//     hats: "bandana",
-//     accessory: "mug",
-//   },
-//   {
-//     bg: "basic-honey",
-//     body: "blue",
-//     eyes: "mischievous",
-//     mouth: "golden-teeth",
-//     hats: "pirate",
-//     accessory: "saber",
-//   },
-//   {
-//     bg: "basic-mellow",
-//     body: "red",
-//     eyes: "snorkel",
-//     mouth: "basic",
-//     hats: "none",
-//     accessory: "kelp",
-//   },
-//   {
-//     bg: "nyc-night",
-//     body: "red",
-//     eyes: "mischievous",
-//     mouth: "frown",
-//     hats: "baseball",
-//     accessory: "mug",
-//   },
+// {
+//   bg: "basic-lagoon",
+//   body: "yellow",
+//   eyes: "anime",
+//   mouth: "smirk",
+//   hats: "none",
+//   accessory: "hedgehog",
+// },
+// {
+//   bg: "basic-coral",
+//   body: "blue",
+//   eyes: "cartoon",
+//   mouth: "smile",
+//   hats: "chef",
+//   accessory: "none",
+// },
+// {
+//   bg: "basic-orchid",
+//   body: "blue",
+//   eyes: "anime",
+//   mouth: "smirk",
+//   hats: "astronaut",
+//   accessory: "samo",
+// },
+// {
+//   bg: "tokyo",
+//   body: "blue",
+//   eyes: "mischievous",
+//   mouth: "grin",
+//   hats: "ninja",
+//   accessory: "none",
+// },
+// {
+//   bg: "basic-coral",
+//   body: "yellow",
+//   eyes: "anime",
+//   mouth: "basic",
+//   hats: "headphones",
+//   accessory: "phantom",
+// },
+// {
+//   bg: "beach",
+//   body: "blue",
+//   eyes: "sol-sunglasses",
+//   mouth: "cat",
+//   hats: "bandana",
+//   accessory: "sol-beach-ball",
+// },
+// {
+//   bg: "basic-lagoon",
+//   body: "red",
+//   eyes: "sleepy",
+//   mouth: "smile",
+//   hats: "bandana",
+//   accessory: "mug",
+// },
+// {
+//   bg: "basic-honey",
+//   body: "blue",
+//   eyes: "mischievous",
+//   mouth: "golden-teeth",
+//   hats: "pirate",
+//   accessory: "saber",
+// },
+// {
+//   bg: "basic-mellow",
+//   body: "red",
+//   eyes: "snorkel",
+//   mouth: "basic",
+//   hats: "none",
+//   accessory: "kelp",
+// },
+// {
+//   bg: "nyc-night",
+//   body: "red",
+//   eyes: "mischievous",
+//   mouth: "frown",
+//   hats: "baseball",
+//   accessory: "mug",
+// },
 // ];
+
+const previewGif = [
+  // Atamari
+  {
+    bg: "beach",
+    body: "orca",
+    eyes: "cartoon",
+    mouth: "basic",
+    hats: "headphones",
+    accessory: "phantom",
+  },
+  // Scuba
+  {
+    bg: "beach",
+    body: "orca",
+    eyes: "snorkel",
+    mouth: "vampire",
+    hats: "none",
+    accessory: "none",
+  },
+  // ori
+  {
+    bg: "beach",
+    body: "orca",
+    eyes: "sol-sunglasses",
+    mouth: "smirk",
+    hats: "bandana",
+    accessory: "mug",
+  },
+  // kiko
+  {
+    bg: "outer-space",
+    body: "orca",
+    eyes: "anime",
+    mouth: "smirk",
+    hats: "astronaut",
+    accessory: "kelp",
+  },
+  // nautilus
+  {
+    bg: "waves",
+    body: "orca",
+    eyes: "anime",
+    mouth: "vampire",
+    hats: "pirate",
+    accessory: "saber",
+  },
+  // milan
+  {
+    bg: "outer-space",
+    body: "orca",
+    eyes: "happy",
+    mouth: "vampire",
+    hats: "astronaut",
+    accessory: "phantom",
+  },
+  // meep
+  {
+    bg: "outer-space",
+    body: "orca",
+    eyes: "droopy",
+    mouth: "smile",
+    hats: "chef",
+    accessory: "samo",
+  },
+  // Pax
+  {
+    bg: "tokyo",
+    body: "orca",
+    eyes: "mischievous",
+    mouth: "vampire",
+    hats: "baseball",
+    accessory: "phantom",
+  },
+  // Sloth
+  {
+    bg: "outer-space",
+    body: "orca",
+    eyes: "happy",
+    mouth: "tongue",
+    hats: "astronaut",
+    accessory: "mug",
+  },
+  // Leo
+  {
+    bg: "mondrian",
+    body: "orca",
+    eyes: "sleepy",
+    mouth: "frown",
+    hats: "chef",
+    accessory: "mug",
+  },
+  // Cori
+  {
+    bg: "tokyo",
+    body: "holo",
+    eyes: "mischievous",
+    mouth: "vampire",
+    hats: "headphones",
+    accessory: "none",
+  },
+  // Jon
+  {
+    bg: "nyc-night",
+    body: "holo",
+    eyes: "aviators",
+    mouth: "tongue",
+    hats: "baseball",
+    accessory: "samo",
+  },
+  // yutaro
+  {
+    bg: "outer-space",
+    body: "orca",
+    eyes: "droopy",
+    mouth: "smirk",
+    hats: "bucket",
+    accessory: "mug",
+  },
+  // tmoc
+  {
+    bg: "beach",
+    body: "orca",
+    eyes: "mischievous",
+    mouth: "vampire",
+    hats: "pirate",
+    accessory: "mug",
+  },
+  // Yibo
+  {
+    bg: "nyc-night",
+    body: "orca",
+    eyes: "happy",
+    mouth: "smile",
+    hats: "headphones",
+    accessory: "mug",
+  },
+  // Jordan
+  {
+    bg: "nyc-night",
+    body: "orca",
+    eyes: "aviators",
+    mouth: "tongue",
+    hats: "headphones",
+    accessory: "samo",
+  },
+  // // Thazin
+  {
+    bg: "tokyo",
+    body: "orca",
+    eyes: "sol-sunglasses",
+    mouth: "tongue",
+    hats: "bandana",
+    accessory: "samo",
+  },
+  // Fiskantes
+  {
+    bg: "tokyo",
+    body: "holo",
+    eyes: "anime",
+    mouth: "vampire",
+    hats: "pirate",
+    accessory: "mug",
+  },
+  // SolBigBrain
+  {
+    bg: "waves",
+    body: "holo",
+    eyes: "cartoon",
+    mouth: "basic",
+    hats: "baseball",
+    accessory: "saber",
+  },
+  // Austin
+  {
+    bg: "beach",
+    body: "holo",
+    mouth: "smile",
+    eyes: "cartoon",
+    accessory: "kelp",
+    hats: "headphones",
+  },
+  // Audius
+  {
+    bg: "nyc-night",
+    body: "holo",
+    mouth: "tongue",
+    eyes: "cartoon",
+    accessory: "saber",
+    hats: "headphones",
+  },
+  // JungleCats
+  {
+    bg: "river",
+    body: "holo",
+    mouth: "cat",
+    eyes: "anime",
+    accessory: "kelp",
+    hats: "bucket",
+  },
+  // Star Atlas
+  {
+    bg: "outer-space",
+    body: "holo",
+    mouth: "smile",
+    eyes: "happy",
+    accessory: "spaceship",
+    hats: "astronaut",
+  },
+
+  // Marinade
+  {
+    bg: "defi",
+    body: "holo",
+    mouth: "smirk",
+    eyes: "droopy",
+    accessory: "scallop",
+    hats: "chef",
+  },
+  // SAMO
+  {
+    bg: "outer-space",
+    body: "holo",
+    mouth: "tongue",
+    eyes: "aviators",
+    accessory: "samo",
+    hats: "baseball",
+  },
+  // Magic Eden
+  {
+    bg: "nyc-night",
+    body: "holo",
+    mouth: "golden-teeth",
+    eyes: "mischievous",
+    accessory: "mug",
+    hats: "pirate",
+  },
+  // DeFi Land
+  {
+    bg: "defi",
+    body: "holo",
+    mouth: "basic",
+    eyes: "anime",
+    accessory: "sol-beach-ball",
+    hats: "baseball",
+  },
+  // Hedgehog
+  {
+    bg: "beach",
+    body: "holo",
+    mouth: "smile",
+    eyes: "aviators",
+    accessory: "hedgehog",
+    hats: "bandana",
+  },
+  // Grape
+  {
+    bg: "basic-orchid",
+    body: "holo",
+    mouth: "smirk",
+    eyes: "sol-sunglasses",
+    accessory: "sol-beach-ball",
+    hats: "baseball",
+  },
+];
 
 const createDna = (_layers, layeringExceptions) => {
   let randNum = [];
 
-  // const previewConfig = previewGif.shift();
+  const previewConfig = previewGif.shift();
 
   const config = {};
   _layers.forEach((layer) => {
-    // const trait = layer.name;
-    // const _variant = previewConfig[layer.name];
-    // const variant = layer.elements.find(({ name }) => name === _variant);
+    const trait = layer.name;
+    const _variant = previewConfig[layer.name];
+    const variant = layer.elements.find(({ name }) => name === _variant);
+    config[trait] = {
+      id: variant.id,
+      variant: variant.name,
+      filename: variant.filename,
+      bypassDNA: layer.bypassDNA,
+    };
+    // randNum.push(
+    //   `${layerElement.id}:${layerElement.filename}${
+    //     layer.bypassDNA ? "?bypassDNA=true" : ""
+    //   }`
+    // );
+    // var totalWeight = 0;
+    // layer.elements.forEach((element) => {
+    //   totalWeight += element.weight;
+    // });
+    // // number between 0 - totalWeight
+    // let random = Math.floor(Math.random() * totalWeight);
+    // for (var i = 0; i < layer.elements.length; i++) {
+    //   // subtract the current weight from the random weight until we reach a sub zero value.
+    //   random -= layer.elements[i].weight;
+    //   if (random < 0) {
+    //     const trait = layer.name;
+    //     const variant = layer.elements[i];
+
+    // Keep track of the chosen configuration
     // config[trait] = {
     //   id: variant.id,
     //   variant: variant.name,
     //   filename: variant.filename,
     //   bypassDNA: layer.bypassDNA,
     // };
-    // randNum.push(
-    //   `${layerElement.id}:${layerElement.filename}${
-    //     layer.bypassDNA ? "?bypassDNA=true" : ""
-    //   }`
-    // );
-    var totalWeight = 0;
-    layer.elements.forEach((element) => {
-      totalWeight += element.weight;
-    });
-    // number between 0 - totalWeight
-    let random = Math.floor(Math.random() * totalWeight);
-    for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
-      random -= layer.elements[i].weight;
-      if (random < 0) {
-        const trait = layer.name;
-        const variant = layer.elements[i];
-
-        // Keep track of the chosen configuration
-        config[trait] = {
-          id: variant.id,
-          variant: variant.name,
-          filename: variant.filename,
-          bypassDNA: layer.bypassDNA,
-        };
-        return;
-      }
-    }
+    //       return;
+    //     }
+    //   }
   });
 
   const layeringException = layeringExceptions.find(({ exception }) => {
@@ -582,6 +913,7 @@ const startCreating = async () => {
         layers,
         layerConfigurations[layerConfigIndex].layeringExceptions
       );
+      console.info({ foo: isDnaUnique(dnaList, newDna), editionCount });
       if (
         isDnaUnique(dnaList, newDna) &&
         !isExcluded(

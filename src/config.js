@@ -10,16 +10,32 @@ const network = NETWORK.sol;
 
 // General metadata for Ethereum
 const namePrefix = "Orcanauts";
-const description = "The most lovable NFTs on Solana";
+const description =
+  "As the Orca ecosystem has grown, new creatures have been sighted emerging from deep within. 10,000 unique Orcanauts are now roaming free! Just like our podmates, each one of these little explorers is unique… and it’s looking for a forever friend with whom to navigate the deep sea of DeFi.";
 const baseUri = "ipfs://NewUriToReplace";
 
 const solanaMetadata = {
   symbol: "ORCANAUT",
   seller_fee_basis_points: 300, // Define how much % you want from secondary market sales 1000 = 10%
-  external_url: "https://www.orca.so",
+  external_url: "https://orcanauts.orca.so",
+  collection: {
+    name: "Orca",
+    family: "Orcanauts",
+  },
   creators: [
     {
-      address: "9tZGyDBftfiTjcyvBNFwy9Vq2jM6q1bDLiq4e7uPuRXE",
+      // Cori's address
+      address: "BPbS1AC4KW5SBiz8M2AgPtWXTzR1ekBwMLLQLcwdvZnE",
+      share: 0,
+    },
+    {
+      // Jon's address
+      address: "5dNGzQh9sonyFUcTHrH6wiCczokUMSc79miMEysyVYjK",
+      share: 0,
+    },
+    {
+      // Secondary sales wallet
+      address: "E3G6ujBGbusExBAPL5hg62xu5ncWeVh9CLjU9qbusVvs",
       share: 100,
     },
   ],
@@ -28,9 +44,11 @@ const solanaMetadata = {
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 9960,
+    // Modify for number of customs
+    growEditionSizeTo: 29,
     layersOrder: [
-      { name: "bg", options: { bypassDNA: true } },
+      // { name: "bg", options: { bypassDNA: true } },
+      { name: "bg" },
       { name: "body" },
       { name: "hats" },
       {
@@ -162,7 +180,7 @@ const preview = {
 };
 
 const preview_gif = {
-  numberOfImages: 10,
+  numberOfImages: 24,
   order: "ASC", // ASC, DESC, MIXED
   repeat: 0,
   quality: 100,
