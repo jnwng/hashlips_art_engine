@@ -15,114 +15,225 @@ const description =
 const baseUri = "ipfs://NewUriToReplace";
 
 const solanaMetadata = {
-  symbol: "ORCANAUT",
+  symbol: "PARCL",
   seller_fee_basis_points: 300, // Define how much % you want from secondary market sales 1000 = 10%
-  external_url: "https://orcanauts.orca.so",
+  external_url: "https://nft.parcl.co",
+  // TODO(jon): Figure out the new collection spec
+  // Deprecated
   collection: {
     name: "Orca",
     family: "Orcanauts",
   },
   creators: [
-    {
-      // Cori's address
-      address: "BPbS1AC4KW5SBiz8M2AgPtWXTzR1ekBwMLLQLcwdvZnE",
-      share: 0,
-    },
-    {
-      // Jon's address
-      address: "5dNGzQh9sonyFUcTHrH6wiCczokUMSc79miMEysyVYjK",
-      share: 0,
-    },
-    {
-      // Secondary sales wallet
-      address: "E3G6ujBGbusExBAPL5hg62xu5ncWeVh9CLjU9qbusVvs",
-      share: 100,
-    },
+    // {
+    //   // Cori's address
+    //   address: "BPbS1AC4KW5SBiz8M2AgPtWXTzR1ekBwMLLQLcwdvZnE",
+    //   share: 0,
+    // },
+    // {
+    //   // Jon's address
+    //   address: "5dNGzQh9sonyFUcTHrH6wiCczokUMSc79miMEysyVYjK",
+    //   share: 0,
+    // },
+    // {
+    //   // Secondary sales wallet
+    //   address: "E3G6ujBGbusExBAPL5hg62xu5ncWeVh9CLjU9qbusVvs",
+    //   share: 100,
+    // },
   ],
+};
+
+const regionSelector = (dna) => {
+  switch (dna.region) {
+    case "New York":
+      return "new-york.png";
+    case "Los Angeles":
+      return "los-angeles.png";
+    case "Miami":
+      return "miami.png";
+    case "Phoenix":
+      return "phoenix.png";
+  }
+};
+
+const regionStoriesSelector = (dna) => {
+  const {
+    stories: { variant: stories },
+    region: { variant: region },
+  } = dna;
+  const buildingMaterial = dna["building-material"].variant
+    .toLowerCase()
+    .replace(" ", "-");
+  switch (region) {
+    case "New York":
+      return `new-york-${stories}-${buildingMaterial}.png`;
+    case "Phoenix":
+      return `phoenix-${stories}-${buildingMaterial}.png`;
+    case "Miami":
+      return `miami-${stories}-${buildingMaterial}.png`;
+    case "Los Angeles":
+      return `los-angeles-${stories}-${buildingMaterial}.png`;
+  }
 };
 
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    // Modify for number of customs
-    growEditionSizeTo: 29,
+    growEditionSizeTo: 25,
     layersOrder: [
-      // { name: "bg", options: { bypassDNA: true } },
-      { name: "bg" },
-      { name: "body" },
-      { name: "hats" },
       {
-        name: "mouth",
+        name: "region",
+        displayName: "Region",
+        options: { metadataOnly: true },
+      },
+      {
+        name: "stories",
+        displayName: "Stories",
+        options: { metadataOnly: true },
+      },
+      {
+        name: "background",
+        displayName: "Background",
+        options: { bypassDNA: true },
+      },
+      { name: "shadow", displayName: "Shadow", options: { artworkOnly: true } },
+      {
+        name: "background-region",
+        displayName: "Background (Region)",
         options: {
-          getFilename: (filename, dna) =>
-            dna["mouth"].variant === "grin"
-              ? `../../variants/grin-${dna["body"].variant}.png`
-              : filename,
+          artworkOnly: true,
+          artworkVariant: {
+            background: regionSelector,
+          },
         },
       },
-      { name: "eyes" },
-      { name: "accessory" },
+      {
+        name: "building-material",
+        displayName: "Building Material",
+        options: {
+          artworkVariant: {
+            "Dark Gray": regionStoriesSelector,
+            "Light Gray": regionStoriesSelector,
+            Tan: regionStoriesSelector,
+          },
+        },
+      },
+      {
+        name: "roof-fence-back",
+        displayName: "Roof Fence (Back)",
+        options: { artworkOnly: true },
+        // Needs variants
+      },
+      { name: "driveway", displayName: "Driveway" },
+      {
+        name: "fence-back",
+        displayName: "Fence (Back)",
+        options: { artworkOnly: true },
+      },
+      { name: "balcony", displayName: "Balcony" },
+      { name: "vehicle", displayName: "Vehicle" },
+      { name: "water-feature", displayName: "Water Feature" },
+      { name: "pool-accessory", displayName: "Pool Accessory" },
+      { name: "patio-back", displayName: "Patio (Back)" },
+      { name: "patio", displayName: "Patio" },
+      {
+        name: "fence-front",
+        displayName: "Fence (Front)",
+        options: { artworkOnly: true },
+      },
+      {
+        name: "roof-fence-front",
+        displayName: "Roof Fence (Front)",
+        options: { artworkOnly: true },
+      },
+      {
+        name: "roof",
+        displayName: "Roof",
+        options: {
+          artworkVariant: {
+            helicopter: regionSelector,
+          },
+        },
+      },
     ],
     // Had to rename "background" -> "bg", "hat" -> "hats"
+    // Awkwardly, trait is matched on the slug, but variant is matched on display name
     invalidCombinations: [
-      [
-        { trait: "bg", variant: "sol-season" },
-        { trait: "accessory", variant: "spaceship" },
-      ],
-      [
-        { trait: "eyes", variant: "snorkel" },
-        { trait: "hats", variant: "headphones" },
-      ],
-      [
-        { trait: "eyes", variant: "snorkel" },
-        { trait: "hats", variant: "astronaut" },
-      ],
+      ...["Bike", "Vespa", "Camry", "Porsche", "Tesla"].map((vehicle) => {
+        return [
+          {
+            trait: "driveway",
+            variant: "2",
+          },
+          {
+            trait: "vehicle",
+            variant: vehicle,
+          },
+        ];
+      }),
+      ...["Bike", "Vespa", "Camry", "Porsche", "Tesla"].map((vehicle) => {
+        return [
+          {
+            trait: "driveway",
+            variant: "Waterfront",
+          },
+          {
+            trait: "pool-accessory",
+            variant: vehicle,
+          },
+        ];
+      }),
+      ...["Bike", "Vespa", "Camry", "Porsche", "Tesla"].map((vehicle) => {
+        return [
+          {
+            trait: "driveway",
+            variant: "Luxury Waterfront",
+          },
+          {
+            trait: "pool-accessory",
+            variant: vehicle,
+          },
+        ];
+      }),
+      ...["Swan", "Pineapple", "Diving Board", "Duck"].map((poolAccessory) => {
+        return [
+          {
+            trait: "water-feature",
+            variant: "Fountain",
+          },
+          {
+            trait: "pool-accessory",
+            variant: poolAccessory,
+          },
+        ];
+      }),
+      ...["roof-fence", "roof-fence-back"].map((trait) => {
+        return [
+          {
+            trait: "stories",
+            variant: "2",
+          },
+          {
+            trait,
+            variant: "Fence",
+          },
+        ];
+      }),
+      ...["Sunbed", "TV"].map((balcony) => {
+        return [
+          {
+            trait: "stories",
+            variant: "2",
+          },
+          {
+            trait: "balcony",
+            variant: balcony,
+          },
+        ];
+      }),
     ],
 
-    layeringExceptions: [
-      {
-        exception: {
-          trait: "hats",
-          variant: "astronaut",
-        },
-        layers: [
-          { name: "bg" },
-          { name: "body" },
-          { name: "mouth" },
-          { name: "eyes" },
-          { name: "hats" },
-          { name: "accessory" },
-        ],
-      },
-      {
-        exception: {
-          trait: "hats",
-          variant: "flower",
-        },
-        layers: [
-          { name: "bg" },
-          { name: "body" },
-          { name: "mouth" },
-          { name: "eyes" },
-          { name: "hats" },
-          { name: "accessory" },
-        ],
-      },
-      {
-        exception: {
-          trait: "eyes",
-          variant: "snorkel",
-        },
-        layers: [
-          { name: "bg" },
-          { name: "body" },
-          { name: "mouth" },
-          { name: "hats" },
-          { name: "eyes" },
-          { name: "accessory" },
-        ],
-      },
-    ],
+    layeringExceptions: [],
   },
 ];
 
