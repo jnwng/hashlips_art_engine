@@ -44,7 +44,7 @@ const solanaMetadata = {
 };
 
 const regionSelector = (dna) => {
-  switch (dna.region) {
+  switch (dna.region.variant) {
     case "New York":
       return "new-york.png";
     case "Los Angeles":
@@ -53,6 +53,40 @@ const regionSelector = (dna) => {
       return "miami.png";
     case "Phoenix":
       return "phoenix.png";
+  }
+};
+
+const helicopterSelector = (dna) => {
+  const {
+    stories: { variant: stories },
+    region: { variant: region },
+  } = dna;
+  switch (region) {
+    case "New York":
+      return "helicopter-new-york.png";
+    case "Los Angeles":
+      return "helicopter-los-angeles.png";
+    case "Miami":
+      return `helicopter-miami-${stories}.png`;
+    case "Phoenix":
+      return "helicopter-phoenix.png";
+  }
+};
+
+const solarPanelsSelector = (dna) => {
+  const {
+    stories: { variant: stories },
+    region: { variant: region },
+  } = dna;
+  switch (region) {
+    case "New York":
+      return "solar-panels-new-york.png";
+    case "Los Angeles":
+      return `solar-panels-los-angeles-${stories}.png`;
+    case "Miami":
+      return "solar-panels-miami.png";
+    case "Phoenix":
+      return `solar-panels-phoenix-${stories}.png`;
   }
 };
 
@@ -76,10 +110,24 @@ const regionStoriesSelector = (dna) => {
   }
 };
 
+const regionSpecificSelector =
+  (trait, regions = []) =>
+  (dna) => {
+    const {
+      region: { variant: region },
+      [trait]: { variant },
+    } = dna;
+    if (regions.includes(region)) {
+      return `${variant.toLowerCase()}-${region
+        .toLowerCase()
+        .replace(" ", "-")}.png`;
+    }
+  };
+
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 25,
+    growEditionSizeTo: 2500,
     layersOrder: [
       {
         name: "region",
@@ -103,7 +151,7 @@ const layerConfigurations = [
         options: {
           artworkOnly: true,
           artworkVariant: {
-            background: regionSelector,
+            None: regionSelector,
           },
         },
       },
@@ -121,117 +169,343 @@ const layerConfigurations = [
       {
         name: "roof-fence-back",
         displayName: "Roof Fence (Back)",
-        options: { artworkOnly: true },
-        // Needs variants
+        options: {
+          artworkOnly: true,
+          artworkVariant: {
+            Fence: regionSpecificSelector("roof-fence-back", [
+              "Phoenix",
+              "Miami",
+            ]),
+          },
+        },
       },
-      { name: "driveway", displayName: "Driveway" },
+      {
+        name: "driveway",
+        displayName: "Driveway",
+        options: {
+          artworkVariant: {
+            1: regionSpecificSelector("driveway", ["New York"]),
+            3: regionSpecificSelector("driveway", ["New York"]),
+            4: regionSpecificSelector("driveway", ["New York"]),
+          },
+        },
+      },
       {
         name: "fence-back",
         displayName: "Fence (Back)",
-        options: { artworkOnly: true },
+        options: {
+          artworkOnly: true,
+          artworkVariant: {
+            Fence: regionSpecificSelector("fence-back", ["Miami"]),
+          },
+        },
       },
       { name: "balcony", displayName: "Balcony" },
-      { name: "vehicle", displayName: "Vehicle" },
-      { name: "water-feature", displayName: "Water Feature" },
+      {
+        name: "driveway-tree",
+        displayName: "Balcony",
+        options: {
+          artworkOnly: true,
+          artworkVariant: {
+            None: regionSpecificSelector("driveway-tree", ["New York"]),
+          },
+        },
+      },
+      {
+        name: "vehicle",
+        displayName: "Vehicle",
+        options: {
+          artworkVariant: {
+            Bike: regionSpecificSelector("vehicle", ["New York"]),
+            Vespa: regionSpecificSelector("vehicle", ["New York"]),
+            Camry: regionSpecificSelector("vehicle", ["New York"]),
+            Tesla: regionSpecificSelector("vehicle", ["New York"]),
+            Porsche: regionSpecificSelector("vehicle", ["New York"]),
+          },
+        },
+      },
+      {
+        name: "water-feature",
+        displayName: "Water Feature",
+        options: {
+          artworkVariant: {
+            None: (dna) => {
+              if (dna.patio) {
+                const {
+                  patio: { variant: patio },
+                } = dna;
+                if (patio !== "None") {
+                  return regionSpecificSelector("water-feature", [
+                    "New York",
+                    "Miami",
+                    "Phoenix",
+                    "Los Angeles",
+                  ])(dna);
+                }
+              }
+            },
+          },
+        },
+      },
       { name: "pool-accessory", displayName: "Pool Accessory" },
-      { name: "patio-back", displayName: "Patio (Back)" },
-      { name: "patio", displayName: "Patio" },
+      {
+        name: "patio-back",
+        displayName: "Patio (Back)",
+        options: {
+          artworkVariant: {
+            Hedge: regionSpecificSelector("patio-back", ["New York"]),
+          },
+        },
+      },
+      {
+        name: "patio",
+        displayName: "Patio",
+        options: {
+          artworkVariant: {
+            None: (dna) => {
+              if (dna["Water Feature"]) {
+                const {
+                  "Water Feature": { variant: waterFeature },
+                } = dna;
+                if (waterFeature === "None") {
+                  return "rest-zone.png";
+                }
+              }
+            },
+          },
+        },
+      },
       {
         name: "fence-front",
         displayName: "Fence (Front)",
-        options: { artworkOnly: true },
+        options: {
+          artworkOnly: true,
+          artworkVariant: {
+            Fence: regionSpecificSelector("fence-front", ["Miami"]),
+          },
+        },
       },
       {
         name: "roof-fence-front",
         displayName: "Roof Fence (Front)",
-        options: { artworkOnly: true },
+        options: {
+          artworkOnly: true,
+          artworkVariant: {
+            Fence: (dna) => {
+              const {
+                region: { variant: region },
+                stories: { variant: stories },
+              } = dna;
+              if (region === "Phoenix") {
+                return "fence-phoenix.png";
+              } else if (region === "Miami") {
+                return "fence-miami.png";
+              } else if (region === "New York" && stories === "1.5") {
+                return "fence-new-york.png";
+              }
+            },
+          },
+        },
       },
       {
         name: "roof",
         displayName: "Roof",
         options: {
           artworkVariant: {
-            helicopter: regionSelector,
+            Helicopter: helicopterSelector,
+            "Solar Panels": solarPanelsSelector,
           },
         },
       },
     ],
-    // Had to rename "background" -> "bg", "hat" -> "hats"
-    // Awkwardly, trait is matched on the slug, but variant is matched on display name
-    invalidCombinations: [
-      ...["Bike", "Vespa", "Camry", "Porsche", "Tesla"].map((vehicle) => {
-        return [
+
+    // If we sort this, then then we can make sure conflicts only cascade one direction
+    // Otherwise, we need to run the matching loop again
+    conflicts: [
+      {
+        resolution: "remove",
+        traits: [
+          {
+            trait: "water-feature",
+            value: "Fountain",
+          },
+          {
+            trait: "pool-accessory",
+            value: "*",
+          },
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
+          {
+            trait: "water-feature",
+            value: "None",
+          },
+          {
+            trait: "pool-accessory",
+            value: "*",
+          },
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
           {
             trait: "driveway",
-            variant: "2",
+            value: "2",
           },
           {
             trait: "vehicle",
-            variant: vehicle,
+            value: "*",
           },
-        ];
-      }),
-      ...["Bike", "Vespa", "Camry", "Porsche", "Tesla"].map((vehicle) => {
-        return [
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
           {
             trait: "driveway",
-            variant: "Waterfront",
+            value: "Waterfront",
           },
           {
-            trait: "pool-accessory",
-            variant: vehicle,
+            trait: "vehicle",
+            value: "*",
           },
-        ];
-      }),
-      ...["Bike", "Vespa", "Camry", "Porsche", "Tesla"].map((vehicle) => {
-        return [
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
           {
             trait: "driveway",
-            variant: "Luxury Waterfront",
+            value: "Luxury Waterfront",
           },
           {
-            trait: "pool-accessory",
-            variant: vehicle,
+            trait: "vehicle",
+            value: "*",
           },
-        ];
-      }),
-      ...["Swan", "Pineapple", "Diving Board", "Duck"].map((poolAccessory) => {
-        return [
-          {
-            trait: "water-feature",
-            variant: "Fountain",
-          },
-          {
-            trait: "pool-accessory",
-            variant: poolAccessory,
-          },
-        ];
-      }),
-      ...["roof-fence", "roof-fence-back"].map((trait) => {
-        return [
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
           {
             trait: "stories",
-            variant: "2",
+            value: "2",
           },
           {
-            trait,
-            variant: "Fence",
+            trait: "roof-fence-front",
+            value: "*",
           },
-        ];
-      }),
-      ...["Sunbed", "TV"].map((balcony) => {
-        return [
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
           {
             trait: "stories",
-            variant: "2",
+            value: "2",
+          },
+          {
+            trait: "roof-fence-back",
+            value: "*",
+          },
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
+          {
+            trait: "stories",
+            value: "2",
           },
           {
             trait: "balcony",
-            variant: balcony,
+            value: "*",
           },
-        ];
-      }),
+        ],
+      },
+
+      {
+        resolution: "remove",
+        traits: [
+          {
+            trait: "patio",
+            value: "Gazebo & BBQ",
+          },
+          {
+            trait: "patio-back",
+            value: "*",
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "region",
+            value: "Los Angeles",
+          },
+          {
+            trait: "driveway",
+            value: ["Waterfront", "Luxury Waterfront"],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "region",
+            value: "Phoenix",
+          },
+          {
+            trait: "driveway",
+            value: ["Waterfront", "Luxury Waterfront"],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "region",
+            value: "New York",
+          },
+          {
+            trait: "driveway",
+            value: ["2", "Waterfront", "Luxury Waterfront"],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "balcony",
+            value: "Sunbed",
+          },
+          {
+            trait: "balcony",
+            value: ["Sunbed"],
+          },
+        ],
+      },
     ],
+    // Awkwardly, trait is matched on the slug, but variant is matched on display name
+    invalidCombinations: [],
 
     layeringExceptions: [],
   },

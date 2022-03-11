@@ -79,18 +79,22 @@ const cleanName = (_str) => {
 };
 
 const getElements = (path) => {
-  return fs
-    .readdirSync(path)
-    .filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
-    .map((i, index) => {
-      return {
-        id: index,
-        name: cleanName(i),
-        filename: i,
-        path: `${path}${i}`,
-        weight: getRarityWeight(i),
-      };
-    });
+  return (
+    fs
+      .readdirSync(path)
+      .filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
+      // Don't include anything without rarity weights!
+      .filter((item) => item.includes("#"))
+      .map((i, index) => {
+        return {
+          id: index,
+          name: cleanName(i),
+          filename: i,
+          path: `${path}${i}`,
+          weight: getRarityWeight(i),
+        };
+      })
+  );
 };
 
 const layersSetup = (layersOrder) => {
@@ -195,7 +199,7 @@ const addAttributes = (_element) => {
   let selectedElement = _element.layer.selectedElement;
   if (!_element.layer.artworkOnly) {
     attributesList.push({
-      trait_type: _element.layer.displayName,
+      trait_type: _element.layer.name,
       value: selectedElement.name,
     });
   }
@@ -316,40 +320,96 @@ const isExcluded = (dna, invalidCombinations) => {
   return excluded;
 };
 
-const createDna = (_layers, layeringExceptions) => {
+const createDna = (_layers, layeringExceptions, conflicts) => {
   let randNum = [];
 
-  const config = {};
-  _layers.forEach((layer) => {
-    // randNum.push(
-    //   `${layerElement.id}:${layerElement.filename}${
-    //     layer.bypassDNA ? "?bypassDNA=true" : ""
-    //   }`
-    // );
-    var totalWeight = 0;
-    layer.elements.forEach((element) => {
-      totalWeight += element.weight;
-    });
-    // number between 0 - totalWeight
-    let random = Math.floor(Math.random() * totalWeight);
-    for (var i = 0; i < layer.elements.length; i++) {
-      // subtract the current weight from the random weight until we reach a sub zero value.
-      random -= layer.elements[i].weight;
-      if (random < 0) {
-        const trait = layer.name;
-        const variant = layer.elements[i];
+  const layersByTrait = _layers.reduce(
+    (memo, layer) => ({ ...memo, [layer.name]: layer }),
+    {}
+  );
 
-        // Keep track of the chosen configuration
-        config[trait] = {
+  const chooseTraitValue = (layer, excludeValues = []) => {
+    const filteredElements = layer.elements.filter(
+      (element) => !excludeValues.includes(element.name)
+    );
+    let totalWeight = filteredElements.reduce(
+      (memo, element) => memo + element.weight,
+      0
+    );
+
+    let randomNumber = Math.floor(Math.random() * totalWeight);
+
+    for (const element of filteredElements) {
+      randomNumber -= element.weight;
+
+      if (randomNumber < 0) {
+        const variant = element;
+
+        return {
           id: variant.id,
           variant: variant.name,
           filename: variant.filename,
-          bypassDNA: layer.bypassDNA,
         };
-        return;
       }
     }
-  });
+  };
+
+  let config = _layers.reduce((memo, layer) => {
+    const traitValue = {
+      ...chooseTraitValue(layer),
+      bypassDNA: layer.bypassDNA,
+    };
+
+    memo[layer.name] = traitValue;
+    return memo;
+  }, {});
+
+  const resolveConflicts = (config, conflicts) => {
+    const replacementConflicts = conflicts.filter(
+      (conflict) => conflict.resolution === "replace"
+    );
+    const applicableConflicts = replacementConflicts.filter((conflict) => {
+      return conflict.traits.every(({ trait, value }) =>
+        [].concat(value).includes(config[trait].variant)
+      );
+    });
+
+    if (applicableConflicts.length) {
+      const {
+        traits: [, secondTrait],
+      } = applicableConflicts[0];
+      const layer = layersByTrait[secondTrait.trait];
+      const newValue = chooseTraitValue(layer, [].concat(secondTrait.value));
+      console.info(
+        `Replacing ${config[secondTrait.trait].variant} with ${
+          newValue.variant
+        }`
+      );
+      config[secondTrait.trait] = newValue;
+    }
+
+    const removalConflicts = conflicts
+      .filter((conflict) => conflict.resolution === "remove")
+      .filter((conflict) => {
+        return conflict.traits.every(({ trait, value }) => {
+          return (
+            config[trait].variant === value ||
+            (!!config[trait] && value === "*")
+          );
+        });
+      });
+
+    removalConflicts.forEach(({ traits: [, secondTrait] }) => {
+      console.info("Deleting", { foo: secondTrait.trait });
+      config[secondTrait.trait] = layersByTrait[
+        secondTrait.trait
+      ].elements.find((element) => element.name === "None");
+    });
+
+    return config;
+  };
+
+  config = resolveConflicts(config, conflicts);
 
   const layeringException = layeringExceptions.find(({ exception }) => {
     return (
@@ -375,6 +435,11 @@ const createDna = (_layers, layeringExceptions) => {
       layer.artworkVariant[variant.variant]
     ) {
       filename = layer.artworkVariant[variant.variant](config);
+      if (filename) {
+        console.info(`Using variant: ${filename}`);
+      } else {
+        filename = variant.filename;
+      }
     }
     randNum.push(
       `${variant.id}:${filename}${variant.bypassDNA ? "?bypassDNA=true" : ""}`
@@ -445,7 +510,8 @@ const startCreating = async () => {
     ) {
       let { dna: newDna, layers: layerOrder } = createDna(
         layers,
-        layerConfigurations[layerConfigIndex].layeringExceptions
+        layerConfigurations[layerConfigIndex].layeringExceptions,
+        layerConfigurations[layerConfigIndex].conflicts
       );
       if (
         isDnaUnique(dnaList, newDna) &&
