@@ -9,37 +9,32 @@ const { NETWORK } = require(path.join(basePath, "constants/network.js"));
 const network = NETWORK.sol;
 
 // General metadata for Ethereum
-const namePrefix = "Orcanauts";
+const namePrefix = "Parcl HOA";
 const description =
-  "As the Orca ecosystem has grown, new creatures have been sighted emerging from deep within. 10,000 unique Orcanauts are now roaming free! Just like our podmates, each one of these little explorers is unique… and it’s looking for a forever friend with whom to navigate the deep sea of DeFi.";
+  "A unique collection of 7,777 homes that make up the Parcl Homeowners Association (HOA).";
 const baseUri = "ipfs://NewUriToReplace";
 
 const solanaMetadata = {
   symbol: "PARCL",
   seller_fee_basis_points: 300, // Define how much % you want from secondary market sales 1000 = 10%
-  external_url: "https://nft.parcl.co",
+  external_url: "https://hoa.parcl.co",
   // TODO(jon): Figure out the new collection spec
   // Deprecated
   collection: {
-    name: "Orca",
-    family: "Orcanauts",
+    name: "Parcl",
+    family: "Homeowners Association",
   },
   creators: [
-    // {
-    //   // Cori's address
-    //   address: "BPbS1AC4KW5SBiz8M2AgPtWXTzR1ekBwMLLQLcwdvZnE",
-    //   share: 0,
-    // },
-    // {
-    //   // Jon's address
-    //   address: "5dNGzQh9sonyFUcTHrH6wiCczokUMSc79miMEysyVYjK",
-    //   share: 0,
-    // },
-    // {
-    //   // Secondary sales wallet
-    //   address: "E3G6ujBGbusExBAPL5hg62xu5ncWeVh9CLjU9qbusVvs",
-    //   share: 100,
-    // },
+    {
+      // Parcl CB address
+      address: "2frUDE47uesZXBebA4cw5QQNuLNuFnFbwNp8eFxUo52d",
+      share: 100,
+    },
+    {
+      // Jon's address
+      address: "5dNGzQh9sonyFUcTHrH6wiCczokUMSc79miMEysyVYjK",
+      share: 0,
+    },
   ],
 };
 
@@ -127,7 +122,7 @@ const regionSpecificSelector =
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 2500,
+    growEditionSizeTo: 7777,
     layersOrder: [
       {
         name: "region",
@@ -182,13 +177,6 @@ const layerConfigurations = [
       {
         name: "driveway",
         displayName: "Driveway",
-        options: {
-          artworkVariant: {
-            1: regionSpecificSelector("driveway", ["New York"]),
-            3: regionSpecificSelector("driveway", ["New York"]),
-            4: regionSpecificSelector("driveway", ["New York"]),
-          },
-        },
       },
       {
         name: "fence-back",
@@ -234,7 +222,7 @@ const layerConfigurations = [
                 const {
                   patio: { variant: patio },
                 } = dna;
-                if (patio !== "None") {
+                if (patio !== "Yard") {
                   return regionSpecificSelector("water-feature", [
                     "New York",
                     "Miami",
@@ -260,20 +248,6 @@ const layerConfigurations = [
       {
         name: "patio",
         displayName: "Patio",
-        options: {
-          artworkVariant: {
-            None: (dna) => {
-              if (dna["Water Feature"]) {
-                const {
-                  "Water Feature": { variant: waterFeature },
-                } = dna;
-                if (waterFeature === "None") {
-                  return "rest-zone.png";
-                }
-              }
-            },
-          },
-        },
       },
       {
         name: "fence-front",
@@ -355,7 +329,7 @@ const layerConfigurations = [
         traits: [
           {
             trait: "driveway",
-            value: "2",
+            value: "Sandbox",
           },
           {
             trait: "vehicle",
@@ -369,7 +343,7 @@ const layerConfigurations = [
         traits: [
           {
             trait: "driveway",
-            value: "Waterfront",
+            value: "Waterfront (Boat)",
           },
           {
             trait: "vehicle",
@@ -383,7 +357,7 @@ const layerConfigurations = [
         traits: [
           {
             trait: "driveway",
-            value: "Luxury Waterfront",
+            value: "Waterfront (Yacht)",
           },
           {
             trait: "vehicle",
@@ -457,7 +431,13 @@ const layerConfigurations = [
           },
           {
             trait: "driveway",
-            value: ["Waterfront", "Luxury Waterfront"],
+            value: [
+              "Waterfront (Boat)",
+              "Waterfront (Yacht)",
+              "Pavement",
+              "Cobblestone",
+              "Sidewalk",
+            ],
           },
         ],
       },
@@ -471,7 +451,13 @@ const layerConfigurations = [
           },
           {
             trait: "driveway",
-            value: ["Waterfront", "Luxury Waterfront"],
+            value: [
+              "Waterfront (Boat)",
+              "Waterfront (Yacht)",
+              "Pavement",
+              "Cobblestone",
+              "Sidewalk",
+            ],
           },
         ],
       },
@@ -485,7 +471,28 @@ const layerConfigurations = [
           },
           {
             trait: "driveway",
-            value: ["2", "Waterfront", "Luxury Waterfront"],
+            value: [
+              "Brick",
+              "Grass Driveway",
+              "Asphalt",
+              "Sandbox",
+              "Waterfront (Boat)",
+              "Waterfront (Yacht)",
+            ],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "region",
+            value: "Miami",
+          },
+          {
+            trait: "driveway",
+            value: ["Pavement", "Cobblestone", "Sidewalk"],
           },
         ],
       },
@@ -498,8 +505,36 @@ const layerConfigurations = [
             value: "Sunbed",
           },
           {
-            trait: "balcony",
+            trait: "patio",
             value: ["Sunbed"],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "water-feature",
+            value: "None",
+          },
+          {
+            trait: "patio",
+            value: ["Furniture"],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
+            trait: "patio",
+            value: "Yard",
+          },
+          {
+            trait: "water-feature",
+            value: ["Pool", "Fountain"],
           },
         ],
       },
@@ -516,8 +551,8 @@ const shuffleLayerConfigurations = false;
 const debugLogs = false;
 
 const format = {
-  width: 888,
-  height: 888,
+  width: 777,
+  height: 777,
 };
 
 const gif = {
@@ -558,8 +593,8 @@ const rarityDelimiter = "#";
 const uniqueDnaTorrance = 10000;
 
 const preview = {
-  thumbPerRow: 100,
-  thumbWidth: 180,
+  thumbPerRow: 25,
+  thumbWidth: 250,
   imageRatio: format.height / format.width,
   imageName: "preview.png",
 };

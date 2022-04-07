@@ -15,67 +15,6 @@ let rawdata = fs.readFileSync(`${basePath}/build/json/_metadata.json`);
 let data = JSON.parse(rawdata);
 let editionSize = data.length;
 
-const humanReadableNames = {
-  none: "None",
-  baseball: "Baseball Cap",
-  bucket: "Bucket Hat",
-  flower: "Flower",
-  bandana: "Bandana",
-  pirate: "Pirate Hat",
-  headphones: "AUDIUS Headphones",
-  chef: "MARINADE Chef Hat",
-  ninja: "NINJA Hood",
-  astronaut: "Astronaut Helmet",
-  basic: "Basic",
-  happy: "Happy",
-  sleepy: "Sleepy",
-  droopy: "Droopy",
-  mischievous: "Mischevous",
-  anime: "Glittery",
-  aviators: "Aviator Sunglasses",
-  cartoon: "Side-eye",
-  snorkel: "SOCN Snorkel",
-  "sol-sunglasses": "SOL Sunglasses",
-  grin: "Grin",
-  smile: "Smile",
-  frown: "Frown",
-  smirk: "Smirk",
-  cat: "Cat",
-  vampire: "Vampire",
-  tongue: "Tongue",
-  "golden-teeth": "Golden Teeth",
-  "aurory-mask": "AURORY Mask",
-  kelp: "Kelp",
-  scallop: "Scallop",
-  coral: "Coral",
-  hedgehog: "HOG Pet",
-  mug: "ORCA Mug",
-  "sol-beach-ball": "SOL Beach Ball",
-  phantom: "PHANTOM Ghost",
-  samo: "SAMO Pet",
-  saber: "SBR Saber",
-  spaceship: "ATLAS Ship",
-  "basic-coral": "Basic, Coral",
-  "basic-honey": "Basic, Honey",
-  "basic-lagoon": "Basic, Lagoon",
-  "basic-mellow": "Basic, Mellow",
-  "basic-orchid": "Basic, Orchid",
-  waves: "Waves",
-  beach: "Beach",
-  river: "River",
-  mondrian: "Mondrian",
-  "outer-space": "Outer Space",
-  defi: "DeFi Land",
-  "nyc-night": "New York City",
-  tokyo: "Tokyo",
-  "sol-season": "SOL Season",
-  blue: "Blue",
-  red: "Pink",
-  yellow: "Yellow",
-  orca: "Orca",
-  holo: "Holographic",
-};
-
 let rarityData = [];
 
 // intialize layers to chart
@@ -89,18 +28,15 @@ layerConfigurations.forEach((config) => {
     elements.forEach((element) => {
       // just get name and weight for each element
       let rarityDataElement = {
-        trait: humanReadableNames[element.name],
+        trait: element.name,
         chance: element.weight.toFixed(0),
         occurrence: 0, // initialize at 0
       };
       elementsForLayer.push(rarityDataElement);
     });
-    let layerName =
-      layer.options?.["displayName"] != undefined
-        ? layer.options?.["displayName"]
-        : layer.name;
+    let layerName = layer.displayName;
     // don't include duplicate layers
-    if (!rarityData.includes(layer.name)) {
+    if (!rarityData.includes(layer.name) && !layer.options?.artworkOnly) {
       // add elements for each layer to chart
       rarityData[layerName] = elementsForLayer;
     }
@@ -115,12 +51,14 @@ data.forEach((element) => {
     let value = attribute.value;
 
     let rarityDataTraits = rarityData[traitType];
-    rarityDataTraits.forEach((rarityDataTrait) => {
-      if (rarityDataTrait.trait == value) {
-        // keep track of occurrences
-        rarityDataTrait.occurrence++;
-      }
-    });
+    if (rarityDataTraits) {
+      rarityDataTraits.forEach((rarityDataTrait) => {
+        if (rarityDataTrait.trait == value) {
+          // keep track of occurrences
+          rarityDataTrait.occurrence++;
+        }
+      });
+    }
   });
 });
 

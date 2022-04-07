@@ -195,11 +195,14 @@ const addMetadata = (_dna, _edition) => {
   attributesList = [];
 };
 
-const addAttributes = (_element) => {
+const addAttributes = (_element, traitConfig) => {
   let selectedElement = _element.layer.selectedElement;
-  if (!_element.layer.artworkOnly) {
+  if (
+    traitConfig &&
+    !(traitConfig.options && traitConfig.options.artworkOnly)
+  ) {
     attributesList.push({
-      trait_type: _element.layer.name,
+      trait_type: traitConfig.displayName || _element.layer.name,
       value: selectedElement.name,
     });
   }
@@ -238,7 +241,7 @@ const drawElement = (_renderObject, _index, _layersLen) => {
         format.height
       );
 
-  addAttributes(_renderObject);
+  // addAttributes(_renderObject);
 };
 
 const constructLayerToDna = (_dna = "", _layers = []) => {
@@ -549,11 +552,19 @@ const startCreating = async () => {
           if (background.generate) {
             drawBackground();
           }
+
           renderObjectArray.forEach((renderObject, index) => {
             drawElement(
               renderObject,
               index,
               layerConfigurations[layerConfigIndex].layersOrder.length
+            );
+
+            addAttributes(
+              renderObject,
+              layerConfigurations[layerConfigIndex].layersOrder.find(
+                (l) => l.name === renderObject.layer.name
+              )
             );
             if (gif.export) {
               hashlipsGiffer.add();
