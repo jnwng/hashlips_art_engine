@@ -40,6 +40,7 @@ const HashlipsGiffer = require(path.join(
   basePath,
   "/modules/HashlipsGiffer.js"
 ));
+const pools = require("/Users/jnwng/forks/hashlips_art_engine/pools.json");
 
 let hashlipsGiffer = null;
 
@@ -314,7 +315,9 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
 const isExcluded = (dna, invalidCombinations) => {
   const excluded = invalidCombinations.some((traitVariantPairs) => {
     return traitVariantPairs.every((pair) => {
-      return dna.includes(pair.variant);
+      const match = dna.match(/Sunbed/g);
+      return match && match.length >= 2;
+      // return dna.includes(pair.variant);
     });
   });
   if (excluded) {
@@ -323,7 +326,13 @@ const isExcluded = (dna, invalidCombinations) => {
   return excluded;
 };
 
-const createDna = (_layers, layeringExceptions, conflicts) => {
+const createDna = (
+  _layers,
+  layeringExceptions,
+  conflicts,
+  editionCount,
+  layerConfig
+) => {
   let randNum = [];
 
   const layersByTrait = _layers.reduce(
@@ -332,6 +341,25 @@ const createDna = (_layers, layeringExceptions, conflicts) => {
   );
 
   const chooseTraitValue = (layer, excludeValues = []) => {
+    // only choose if not already chosen
+    //editionCount
+
+    const json = JSON.parse(
+      fs.readFileSync(
+        `/Users/jnwng/forks/hashlips_art_engine/json-backup/${
+          editionCount - 1
+        }.json`
+      )
+    );
+
+    const displayName = layerConfig.layersOrder.find(
+      (foo) => foo.name === layer.name
+    ).displayName;
+
+    const hasTrait = json.attributes.find(
+      (foo) => foo.trait_type === displayName
+    );
+
     const filteredElements = layer.elements.filter(
       (element) => !excludeValues.includes(element.name)
     );
@@ -339,6 +367,18 @@ const createDna = (_layers, layeringExceptions, conflicts) => {
       (memo, element) => memo + element.weight,
       0
     );
+
+    if (hasTrait) {
+      const variant = filteredElements.find(
+        (foo) => foo.name === hasTrait.value
+      );
+
+      return {
+        id: variant.id,
+        variant: variant.name,
+        filename: variant.filename,
+      };
+    }
 
     let randomNumber = Math.floor(Math.random() * totalWeight);
 
@@ -372,23 +412,25 @@ const createDna = (_layers, layeringExceptions, conflicts) => {
       (conflict) => conflict.resolution === "replace"
     );
     const applicableConflicts = replacementConflicts.filter((conflict) => {
-      return conflict.traits.every(({ trait, value }) =>
-        [].concat(value).includes(config[trait].variant)
-      );
+      return conflict.traits.every(({ trait, value }) => {
+        return [].concat(value).includes(config[trait].variant);
+      });
     });
 
     if (applicableConflicts.length) {
-      const {
-        traits: [, secondTrait],
-      } = applicableConflicts[0];
-      const layer = layersByTrait[secondTrait.trait];
-      const newValue = chooseTraitValue(layer, [].concat(secondTrait.value));
-      console.info(
-        `Replacing ${config[secondTrait.trait].variant} with ${
-          newValue.variant
-        }`
-      );
-      config[secondTrait.trait] = newValue;
+      applicableConflicts.forEach((applicableConflict) => {
+        const {
+          traits: [, secondTrait],
+        } = applicableConflict;
+        const layer = layersByTrait[secondTrait.trait];
+        const newValue = chooseTraitValue(layer, [].concat(secondTrait.value));
+        console.info(
+          `Replacing ${config[secondTrait.trait].variant} with ${
+            newValue.variant
+          }`
+        );
+        config[secondTrait.trait] = newValue;
+      });
     }
 
     const removalConflicts = conflicts
@@ -466,6 +508,9 @@ const saveMetaDataSingleFile = (_editionCount) => {
         `Writing metadata for ${_editionCount}: ${JSON.stringify(metadata)}`
       )
     : null;
+
+  delete metadata.edition;
+
   fs.writeFileSync(
     `${buildDir}/json/${_editionCount}.json`,
     JSON.stringify(metadata, null, 2)
@@ -511,18 +556,25 @@ const startCreating = async () => {
     while (
       editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
     ) {
-      let { dna: newDna, layers: layerOrder } = createDna(
-        layers,
-        layerConfigurations[layerConfigIndex].layeringExceptions,
-        layerConfigurations[layerConfigIndex].conflicts
-      );
-      if (
-        isDnaUnique(dnaList, newDna) &&
-        !isExcluded(
-          newDna,
-          layerConfigurations[layerConfigIndex].invalidCombinations
-        )
-      ) {
+      console.info({ editionCount, pools: pools.includes(`${editionCount}`) });
+      if (!pools.includes(`${editionCount - 1}`)) {
+        editionCount++;
+        abstractedIndexes.shift();
+      } else {
+        let { dna: newDna, layers: layerOrder } = createDna(
+          layers,
+          layerConfigurations[layerConfigIndex].layeringExceptions,
+          layerConfigurations[layerConfigIndex].conflicts,
+          editionCount,
+          layerConfigurations[layerConfigIndex]
+        );
+        // if (
+        //   isDnaUnique(dnaList, newDna) &&
+        //   !isExcluded(
+        //     newDna,
+        //     layerConfigurations[layerConfigIndex].invalidCombinations
+        //   )
+        // ) {
         let results = constructLayerToDna(newDna, layerOrder);
         let loadedElements = [];
 
@@ -532,6 +584,11 @@ const startCreating = async () => {
           );
           if (!layerConfig.metadataOnly) {
             loadedElements.push(loadLayerImg(layer));
+          } else {
+            const foo = layerConfigurations[layerConfigIndex].layersOrder.find(
+              (l) => l.name === layer.name
+            );
+            addAttributes({ layer }, foo);
           }
         });
 
@@ -577,8 +634,8 @@ const startCreating = async () => {
             ? console.log("Editions left to create: ", abstractedIndexes)
             : null;
           saveImage(abstractedIndexes[0]);
-          addMetadata(newDna, abstractedIndexes[0]);
-          saveMetaDataSingleFile(abstractedIndexes[0]);
+          // addMetadata(newDna, abstractedIndexes[0]);
+          // saveMetaDataSingleFile(abstractedIndexes[0]);
           console.log(
             `Created edition: ${abstractedIndexes[0]}, with DNA: ${sha1(
               newDna
@@ -588,15 +645,16 @@ const startCreating = async () => {
         dnaList.add(filterDNAOptions(newDna));
         editionCount++;
         abstractedIndexes.shift();
-      } else {
-        // console.log("DNA exists!");
-        failedCount++;
-        // Removing this check because it doesn't really help us
-        // if (failedCount >= uniqueDnaTorrance) {
-        //   console.log(
-        //     `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
-        //   );
-        //   process.exit();
+        // } else {
+        //   // console.log("DNA exists!");
+        //   failedCount++;
+        //   // Removing this check because it doesn't really help us
+        //   // if (failedCount >= uniqueDnaTorrance) {
+        //   //   console.log(
+        //   //     `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
+        //   //   );
+        //   //   process.exit();
+        //   // }
         // }
       }
     }

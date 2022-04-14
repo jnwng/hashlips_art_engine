@@ -191,7 +191,6 @@ const layerConfigurations = [
       { name: "balcony", displayName: "Balcony" },
       {
         name: "driveway-tree",
-        displayName: "Balcony",
         options: {
           artworkOnly: true,
           artworkVariant: {
@@ -211,6 +210,19 @@ const layerConfigurations = [
             Porsche: regionSpecificSelector("vehicle", ["New York"]),
           },
         },
+      },
+      {
+        name: "patio-back",
+        displayName: "Patio (Back)",
+        options: {
+          artworkVariant: {
+            Hedge: regionSpecificSelector("patio-back", ["New York"]),
+          },
+        },
+      },
+      {
+        name: "patio",
+        displayName: "Patio",
       },
       {
         name: "water-feature",
@@ -236,19 +248,6 @@ const layerConfigurations = [
         },
       },
       { name: "pool-accessory", displayName: "Pool Accessory" },
-      {
-        name: "patio-back",
-        displayName: "Patio (Back)",
-        options: {
-          artworkVariant: {
-            Hedge: regionSpecificSelector("patio-back", ["New York"]),
-          },
-        },
-      },
-      {
-        name: "patio",
-        displayName: "Patio",
-      },
       {
         name: "fence-front",
         displayName: "Fence (Front)",
@@ -501,20 +500,6 @@ const layerConfigurations = [
         resolution: "replace",
         traits: [
           {
-            trait: "balcony",
-            value: "Sunbed",
-          },
-          {
-            trait: "patio",
-            value: ["Sunbed"],
-          },
-        ],
-      },
-
-      {
-        resolution: "replace",
-        traits: [
-          {
             trait: "water-feature",
             value: "None",
           },
@@ -529,18 +514,43 @@ const layerConfigurations = [
         resolution: "replace",
         traits: [
           {
-            trait: "patio",
-            value: "Yard",
+            trait: "water-feature",
+            value: "Pool",
           },
           {
+            trait: "patio",
+            value: ["Yard", "Furniture"],
+          },
+        ],
+      },
+
+      {
+        resolution: "replace",
+        traits: [
+          {
             trait: "water-feature",
-            value: ["Pool", "Fountain"],
+            value: "Fountain",
+          },
+          {
+            trait: "patio",
+            value: ["Yard", "Furniture"],
           },
         ],
       },
     ],
     // Awkwardly, trait is matched on the slug, but variant is matched on display name
-    invalidCombinations: [],
+    invalidCombinations: [
+      [
+        {
+          trait: "patio",
+          variant: "Sunbed",
+        },
+        {
+          trait: "balcony",
+          variant: "Sunbed",
+        },
+      ],
+    ],
 
     layeringExceptions: [],
   },
